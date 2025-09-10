@@ -7,10 +7,10 @@ import secrets
 class Settings(BaseSettings):
 
     API_V1_STR: str = '/api/v1'
-    DB_URL: str = 'postgresql+asyncpg://user:password@localhost:5432/testdb'
+    DB_URL: str = 'postgresql+asyncpg://user:password@localhost:5432/postgres'
     DBBaseModel: ClassVar[DeclarativeMeta] = declarative_base()
     
-    JWT_SECRET: str = '' # Aqui nos vamos colocar uma string aleatoria, para ser o segredo do JWT
+    JWT_SECRET: str = 'TXEReWu4QwHk1ayJbNn4NqcmeOaCSgrctFTByTJO3VY' # Aqui nos vamos colocar uma string aleatoria, para ser o segredo do JWT
     ALGORITHM: str = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     

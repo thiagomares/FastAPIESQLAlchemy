@@ -16,8 +16,8 @@ from core.auth import autenticar, criar_token_acesso
 
 router = APIRouter()
 
-# Get Logon
-@router.post("/login", response_model=UsuarioSchemaBase)
+# Get Logado
+@router.get("/logado", response_model=UsuarioSchemaBase)
 def get_logado(usuario_logado: UsuarioSchemaBase = Depends(get_current_user)):
     return usuario_logado
 
@@ -26,7 +26,7 @@ def get_logado(usuario_logado: UsuarioSchemaBase = Depends(get_current_user)):
 async def create_usuario(usuario: UsuarioSchemaCreate, session: AsyncSession = Depends(get_session)):
     try:
         async with session as sess:
-            usuario_db = UsuarioModel(nome=usuario.nome, email=usuario.email, senha=gerar_hash_senha(usuario.senha))
+            usuario_db = UsuarioModel(nome=usuario.nome, email=usuario.email, senha=gerar_hash_senha(usuario.senha), ativo=usuario.ativo)
             sess.add(usuario_db)
             await sess.commit()
             await sess.refresh(usuario_db)
@@ -91,3 +91,14 @@ async def update_usuario(usuario_id: int, usuario: UsuarioSchemaUpdate, session:
                     return usuario_db
     except IntegrityError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao atualizar o usuário")
+    
+# POST Login
+@router.post('/login')
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_session)):
+    usuario = await autenticar(email=form_data.username, senha=form_data.password, db=db)
+
+    if not usuario:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Dados de acesso incorretos.')
+
+    return JSONResponse(content={"access_token": criar_token_acesso(sub=usuario.id), "token_type": "bearer"}, status_code=status.HTTP_200_OK)
